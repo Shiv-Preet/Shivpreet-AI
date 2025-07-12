@@ -3,13 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Whitebox AI - Personal AI Assistant</title>
+    <title>Shivpreet AI - Personal AI Assistant | व्यक्तिगत AI सहायक</title>
+    <!-- Author Meta -->
+    <meta name="author" content="Shiv Chand Yadav">
+    <meta name="copyright" content="© 2023 Shivpreet AI. All rights reserved.">
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/github.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
     <style>
+        /* Custom Styling for Shivpreet AI */
+        :root {
+            --primary-color: #3b0764;
+            --secondary-color: #7e22ce;
+        }
         .typing-indicator span {
             animation: pulse 1.5s infinite ease-in-out;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 0.2; transform: translateY(0); }
+            50% { opacity: 1; transform: translateY(-2px); }
+        }
+        .typing-indicator span {
+            display: inline-block;
+            animation: pulse 1.2s infinite ease-in-out;
         }
         .typing-indicator span:nth-child(2) {
             animation-delay: 0.2s;
@@ -17,120 +34,188 @@
         .typing-indicator span:nth-child(3) {
             animation-delay: 0.4s;
         }
-        @keyframes pulse {
-            0%, 100% { opacity: 0.4; }
-            50% { opacity: 1; }
+        .brand-bg {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
         }
-        .markdown-content pre {
+        .brand-btn {
+            background: var(--secondary-color);
+        }
+        .brand-btn:hover {
+            background: var(--primary-color);
+            transform: translateY(-2px) scale(1.03);
+            transition: transform 0.2s ease, background 0.3s ease;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -1px rgb(0 0 0 / 0.06);
+        }
+        /* Language Toggle Styles */
+        .lang-btn {
+            padding: 0.35rem 0.7rem;
             border-radius: 0.5rem;
-            overflow: hidden;
-            margin: 1rem 0;
+            font-size: 0.85rem;
+            background: #f3e8ff;
+            color: #6b21a8;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1.5px solid #c084fc;
+            font-weight: 600;
+            letter-spacing: 0.025em;
         }
-        .chat-container {
-            height: 60vh;
-        }
-        #knowledgeGraph {
-            height: 400px;
-            background-color: #f3f4f6;
-            border-radius: 0.5rem;
+        .lang-btn.active {
+            background: #7e22ce;
+            color: white;
         }
     </style>
 </head>
 <body class="bg-gray-50 dark:bg-gray-900 transition-colors duration-200 min-h-screen">
     <div class="container mx-auto p-4">
-        <!-- Header -->
+        <!-- Custom Header -->
         <header class="flex justify-between items-center mb-6">
             <div class="flex items-center space-x-3">
-                <img src="https://placehold.co/40x40" alt="Whitebox AI logo - modern blue cube with glowing edges on dark background" class="rounded-lg">
-                <h1 class="text-2xl font-bold text-gray-800 dark:text-white">Whitebox AI</h1>
+                <img src="https://placehold.co/80x80/7e22ce/ffffff.png?text=SCY" alt="Shivpreet AI logo - A project by Shiv Chand Yadav" class="rounded-lg">
+                <h1 class="text-2xl font-bold text-gray-800 dark:text-white">Shivpreet AI</h1>
             </div>
-            <div class="flex space-x-4">
-                <button id="memoryBtn" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg">Memory</button>
-                <button id="trainingBtn" class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg">Training</button>
-                <button id="themeToggle" class="p-2 rounded-full bg-gray-200 dark:bg-gray-700">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" id="lightIcon">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-                    </svg>
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" id="darkIcon">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-                    </svg>
-                </button>
+            <div class="text-xs text-gray-500 dark:text-gray-400">
+                Created by Shiv Chand Yadav
             </div>
         </header>
 
-        <!-- Main Content -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <!-- Chat Interface -->
-            <div class="lg:col-span-2 bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden">
-                <div class="chat-container p-4 overflow-y-auto">
-                    <div class="flex justify-start">
-                        <div class="max-w-3xl rounded-lg px-4 py-3 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-100">
-                            <p>Hello! I'm your personal Whitebox AI assistant. I have several capabilities:</p>
-                            <ul class="list-disc pl-5 mt-2 space-y-1">
-                                <li><strong>Code Generation</strong> - I can write and explain code in multiple languages</li>
-                                <li><strong>Context Memory</strong> - I remember our conversation history</li>
-                                <li><strong>Knowledge Training</strong> - You can teach me new information</li>
-                                <li><strong>Task Automation</strong> - I can simulate API calls and data processing</li>
-                            </ul>
-                            <p class="mt-2">What would you like to do today?</p>
+        <!-- Main Chat Interface -->
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden">
+            <div class="chat-container p-4 overflow-y-auto" style="height: 60vh;">
+                <!-- Custom Welcome Message -->
+                <div class="flex justify-start">
+                    <div class="max-w-3xl rounded-lg px-4 py-3 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-100">
+                        <div class="flex space-x-2 mb-2">
+                            <button class="lang-btn active" data-lang="en">English</button>
+                            <button class="lang-btn" data-lang="hi">हिंदी</button>
                         </div>
-                    </div>
-                </div>
-
-                <div class="border-t border-gray-200 dark:border-gray-700 p-4">
-                    <form id="chatForm" class="flex space-x-2">
-                        <input type="text" id="userInput" placeholder="How can I help?" class="flex-1 rounded-lg px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-800 dark:text-gray-100">
-                        <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200">Send</button>
-                    </form>
-                    <div class="flex flex-wrap gap-2 mt-2">
-                        <button class="px-3 py-1 text-xs bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-md" data-prompt="Write Python code for quick sort">Quick Sort</button>
-                        <button class="px-3 py-1 text-xs bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-md" data-prompt="Explain event loop in JavaScript">JS Event Loop</button>
-                        <button class="px-3 py-1 text-xs bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-md" data-prompt="Train me about: Network protocols">Teach Network</button>
+                        <p class="greeting" data-en="Hello!" data-hi="नमस्ते!">नमस्ते!</p>
+                        <p class="mt-2 assist" data-en="I can assist you with:" data-hi="मैं आपकी सहायता कर सकता हूँ:"></p>
+                        <ul class="list-disc pl-5 mt-2 space-y-1">
+                            <li class="feature" data-en="Coding in multiple languages" data-hi="कई भाषाओं में कोडिंग"></li>
+                            <li class="feature" data-en="Technical explanations" data-hi="तकनीकी स्पष्टीकरण"></li>
+                            <li class="feature" data-en="Knowledge training and recall" data-hi="ज्ञान प्रशिक्षण और याद"></li>
+                            <li class="feature" data-en="Problem solving" data-hi="समस्या समाधान"></li>
+                        </ul>
+                        <p class="mt-2 border-t pt-2 text-sm">
+                            <strong>Owner:</strong> Shiv Chand Yadav<br>
+                            <strong>Version:</strong> <span id="version">1.0.2</span>
+                        </p>
                     </div>
                 </div>
             </div>
 
-            <!-- Side Panel -->
-            <div class="space-y-6">
-                <!-- Memory Panel -->
-                <div id="memoryPanel" class="bg-white dark:bg-gray-800 rounded-xl shadow-md p-4 hidden">
-                    <h2 class="text-lg font-semibold text-gray-800 dark:text-white mb-3">Memory Context</h2>
-                    <div id="memoryContent" class="text-sm text-gray-600 dark:text-gray-300">
-                        <p>Conversation context will appear here.</p>
-                    </div>
-                    <div class="mt-4">
-                        <h3 class="font-medium text-gray-700 dark:text-gray-200 mb-2">Knowledge Graph</h3>
-                        <div id="knowledgeGraph" class="p-2">
-                            <img src="https://placehold.co/600x400" alt="Dynamic knowledge graph visualization showing connected nodes of information" class="w-full h-full object-cover rounded">
-                        </div>
-                    </div>
-                    <button id="clearMemoryBtn" class="mt-4 w-full py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg">Clear Memory</button>
-                </div>
-
-                <!-- Training Panel -->
-                <div id="trainingPanel" class="bg-white dark:bg-gray-800 rounded-xl shadow-md p-4 hidden">
-                    <h2 class="text-lg font-semibold text-gray-800 dark:text-white mb-3">Train Your AI</h2>
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Knowledge Type</label>
-                        <select id="knowledgeType" class="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-gray-800 dark:text-gray-100">
-                            <option value="fact">Fact/Information</option>
-                            <option value="code">Code Example</option>
-                            <option value="process">Process/Workflow</option>
-                        </select>
-                    </div>
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Subject/Topic</label>
-                        <input type="text" id="trainTopic" class="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-gray-800 dark:text-gray-100">
-                    </div>
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Details</label>
-                        <textarea id="trainDetails" rows="4" class="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-gray-800 dark:text-gray-100"></textarea>
-                    </div>
-                    <button id="trainBtn" class="w-full py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg">Train AI</button>
+            <!-- Input Area -->
+            <div class="border-t border-gray-200 dark:border-gray-700 p-4">
+                <form class="flex space-x-2">
+                    <input type="text" placeholder-en="Ask Shivpreet AI..." placeholder-hi="Shivpreet AI से पूछें..." placeholder="Ask Shivpreet AI..." class="flex-1 rounded-lg px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-800 dark:text-gray-100">
+                    <button type="submit" class="px-4 py-2 brand-btn hover:brand-btn text-white rounded-lg">Send</button>
+                </form>
+                <div class="text-center mt-2 text-xs text-gray-500 dark:text-gray-400">
+                    © 2023 Shivpreet AI - A Project by Shiv Chand Yadav
                 </div>
             </div>
         </div>
     </div>
+
+    <script>
+        // Language Switching Functionality
+        function switchLanguage(lang) {
+            document.querySelectorAll('[data-en], [data-hi]').forEach(el => {
+                if (el.tagName === 'INPUT') {
+                    el.placeholder = el.getAttribute(`placeholder-${lang}`);
+                } else {
+                    el.textContent = el.getAttribute(`data-${lang}`);
+                }
+            });
+            
+            document.querySelectorAll('.lang-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.lang === lang);
+            });
+        }
+
+        // Custom Initialization Script
+        // Handle form submission
+        document.querySelector('form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const input = e.target.querySelector('input');
+            const userMessage = input.value.trim();
+            if (userMessage) {
+                // Add user message first
+                addMessageToChat(userMessage, 'user');
+                
+                // Show typing indicator
+                const typingIndicator = document.createElement('div');
+                typingIndicator.className = 'flex justify-start mb-4 typing-indicator';
+                typingIndicator.innerHTML = `
+                    <div class="max-w-3xl rounded-lg px-4 py-3 bg-gray-200 dark:bg-gray-700">
+                        <div class="flex space-x-1">
+                            <span>•</span>
+                            <span>•</span>
+                            <span>•</span>
+                        </div>
+                    </div>
+                `;
+                document.querySelector('.chat-container').appendChild(typingIndicator);
+                
+                // Process and respond after delay
+                setTimeout(() => {
+                    if (document.querySelector('.typing-indicator')) {
+                        document.querySelector('.chat-container').removeChild(typingIndicator);
+                        const response = myAI.process(userMessage);
+                        addMessageToChat(response, 'ai');
+                        // Auto-scroll to newest message
+                        document.querySelector('.chat-container').scrollTop = document.querySelector('.chat-container').scrollHeight;
+                    }
+                }, 1200 + Math.random() * 800); // Random delay between 1.2-2 seconds for natural feel
+                
+                input.value = '';
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Language switching
+            document.querySelectorAll('.lang-btn').forEach(btn => {
+                btn.addEventListener('click', () => switchLanguage(btn.dataset.lang));
+            });
+            // Watermark
+            console.log('%c🕉️ Shivpreet AI - Created by Shiv Chand Yadav', 
+                'color: #7e22ce; font-weight: bold');
+            
+            // Version display
+            document.getElementById('version').textContent = '1.0.0';
+        });
+
+        // Custom Functions for Shivpreet AI
+        class ShivpreetAI {
+            constructor(creator = "Shiv Chand Yadav") {
+                this.creator = creator;
+                this.version = "1.0.0";
+                this.knowledgeBase = {
+                    creatorInfo: {
+                        name: "Shiv Chand Yadav",
+                        project: "Shivpreet AI"
+                    }
+                };
+            }
+        }
+
+        // Helper function to add messages to chat
+        function addMessageToChat(message, sender) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `flex ${sender === 'user' ? 'justify-end' : 'justify-start'} mb-4`;
+            messageDiv.innerHTML = `
+                <div class="max-w-3xl rounded-lg px-4 py-3 ${sender === 'user' ? 'bg-blue-600 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-100'}">
+                    ${message}
+                </div>
+            `;
+            document.querySelector('.chat-container').appendChild(messageDiv);
+        }
+
+        // Initialize
+        const myAI = new ShivpreetAI();
+    </script>
+</body>
+</html>
+
 
     <script>
         // ========== CORE AI SYSTEM ==========
