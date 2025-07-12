@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Whitebox AI - Personal AI Assistant</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/github.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+    <style>
+        .typing-indicator span {
+            animation: pulse 1.5s infinite ease-in-out;
+        }
+        .typing-indicator span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        .typing-indicator span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 0.4; }
+            50% { opacity: 1; }
+        }
+        .markdown-content pre {
+            border-radius: 0.5rem;
+            overflow: hidden;
+            margin: 1rem 0;
+        }
+        .chat-container {
+            height: 60vh;
+        }
+        #knowledgeGraph {
+            height: 400px;
+            background-color: #f3f4f6;
+            border-radius: 0.5rem;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 transition-colors duration-200 min-h-screen">
+    <div class="container mx-auto p-4">
+        <!-- Header -->
+        <header class="flex justify-between items-center mb-6">
+            <div class="flex items-center space-x-3">
+                <img src="https://placehold.co/40x40" alt="Whitebox AI logo - modern blue cube with glowing edges on dark background" class="rounded-lg">
+                <h1 class="text-2xl font-bold text-gray-800 dark:text-white">Whitebox AI</h1>
+            </div>
+            <div class="flex space-x-4">
+                <button id="memoryBtn" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg">Memory</button>
+                <button id="trainingBtn" class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg">Training</button>
+                <button id="themeToggle" class="p-2 rounded-full bg-gray-200 dark:bg-gray-700">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" id="lightIcon">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                    </svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" id="darkIcon">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                    </svg>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Chat Interface -->
+            <div class="lg:col-span-2 bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden">
+                <div class="chat-container p-4 overflow-y-auto">
+                    <div class="flex justify-start">
+                        <div class="max-w-3xl rounded-lg px-4 py-3 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-100">
+                            <p>Hello! I'm your personal Whitebox AI assistant. I have several capabilities:</p>
+                            <ul class="list-disc pl-5 mt-2 space-y-1">
+                                <li><strong>Code Generation</strong> - I can write and explain code in multiple languages</li>
+                                <li><strong>Context Memory</strong> - I remember our conversation history</li>
+                                <li><strong>Knowledge Training</strong> - You can teach me new information</li>
+                                <li><strong>Task Automation</strong> - I can simulate API calls and data processing</li>
+                            </ul>
+                            <p class="mt-2">What would you like to do today?</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="border-t border-gray-200 dark:border-gray-700 p-4">
+                    <form id="chatForm" class="flex space-x-2">
+                        <input type="text" id="userInput" placeholder="How can I help?" class="flex-1 rounded-lg px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-800 dark:text-gray-100">
+                        <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200">Send</button>
+                    </form>
+                    <div class="flex flex-wrap gap-2 mt-2">
+                        <button class="px-3 py-1 text-xs bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-md" data-prompt="Write Python code for quick sort">Quick Sort</button>
+                        <button class="px-3 py-1 text-xs bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-md" data-prompt="Explain event loop in JavaScript">JS Event Loop</button>
+                        <button class="px-3 py-1 text-xs bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-md" data-prompt="Train me about: Network protocols">Teach Network</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Side Panel -->
+            <div class="space-y-6">
+                <!-- Memory Panel -->
+                <div id="memoryPanel" class="bg-white dark:bg-gray-800 rounded-xl shadow-md p-4 hidden">
+                    <h2 class="text-lg font-semibold text-gray-800 dark:text-white mb-3">Memory Context</h2>
+                    <div id="memoryContent" class="text-sm text-gray-600 dark:text-gray-300">
+                        <p>Conversation context will appear here.</p>
+                    </div>
+                    <div class="mt-4">
+                        <h3 class="font-medium text-gray-700 dark:text-gray-200 mb-2">Knowledge Graph</h3>
+                        <div id="knowledgeGraph" class="p-2">
+                            <img src="https://placehold.co/600x400" alt="Dynamic knowledge graph visualization showing connected nodes of information" class="w-full h-full object-cover rounded">
+                        </div>
+                    </div>
+                    <button id="clearMemoryBtn" class="mt-4 w-full py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg">Clear Memory</button>
+                </div>
+
+                <!-- Training Panel -->
+                <div id="trainingPanel" class="bg-white dark:bg-gray-800 rounded-xl shadow-md p-4 hidden">
+                    <h2 class="text-lg font-semibold text-gray-800 dark:text-white mb-3">Train Your AI</h2>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Knowledge Type</label>
+                        <select id="knowledgeType" class="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-gray-800 dark:text-gray-100">
+                            <option value="fact">Fact/Information</option>
+                            <option value="code">Code Example</option>
+                            <option value="process">Process/Workflow</option>
+                        </select>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Subject/Topic</label>
+                        <input type="text" id="trainTopic" class="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-gray-800 dark:text-gray-100">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Details</label>
+                        <textarea id="trainDetails" rows="4" class="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-gray-800 dark:text-gray-100"></textarea>
+                    </div>
+                    <button id="trainBtn" class="w-full py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg">Train AI</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ========== CORE AI SYSTEM ==========
+        class WhiteboxAI {
+            constructor() {
+                this.memory = {
+                    conversation: [],
+                    knowledge: {
+                        facts: {},
+                        code: {},
+                        processes: {}
+                    },
+                    context: []
+                };
+                
+                this.skills = {
+                    coding: this.generateCode.bind(this),
+                    explaining: this.explainConcept.bind(this),
+                    training: this.addKnowledge.bind(this),
+                    remembering: this.recallInformation.bind(this)
+                };
+            }
+            
+            // Core processing function
+            process(input) {
+                // Add to conversation history
+                this.memory.conversation.push({
+                    role: 'user',
+                    content: input
+                });
+                
+                // Understand the intent
+                const intent = this.understandIntent(input);
+                
+                // Generate response based on intent
+                let response;
+                if (intent.type === 'code') {
+                    response = this.skills.coding(intent.details);
+                } else if (intent.type === 'explain') {
+                    response = this.skills.explaining(intent.details);
+                } else if (intent.type === 'train') {
+                    response = this.skills.training(intent.details);
+                } else {
+                    response = this.skills.remembering(input);
+                }
+                
+                // Add AI response to memory
+                this.memory.conversation.push({
+                    role: 'ai',
+                    content: response
+                });
+                
+                // Update context
+                this.updateContext(input, response);
+                
+                return response;
+            }
+            
+            // Intent recognition
+            understandIntent(input) {
+                input = input.toLowerCase();
+                
+                // Check for code-related requests
+                if (input.includes('code') || input.includes('write') || input.includes('implement')) {
+                    return {
+                        type: 'code',
+                        details: input
+                    };
+                }
+                
+                // Check for explanation requests
+                if (input.includes('explain') || input.includes('how does') || input.includes('what is')) {
+                    return {
+                        type: 'explain',
+                        details: input
+                    };
+                }
+                
+                // Check for training requests
+                if (input.startsWith('train') || input.includes('teach') || input.includes('remember')) {
+                    return {
+                        type: 'train',
+                        details: input
+                    };
+                }
+                
+                // Default to memory lookup
+                return {
+                    type: 'remember',
+                    details: input
+                };
+            }
+            
+            // ========== SKILL MODULES ==========
+            
+            // Code generation skill
+            generateCode(request) {
+                const languageMatch = request.match(/(javascript|python|java|c\+\+|c#|ruby|go|rust|php|swift|typescript)/i);
+                const language = languageMatch ? languageMatch[1].toLowerCase() : 'python';
+                
+                // Check if we have a matching code example in memory
+                const memoryMatch = this.searchMemory(request, 'code');
+                if (memoryMatch) {
+                    return `Based on my training, here's the ${language} code you might find helpful:\n\`\`\`${language}\n${memoryMatch}\n\`\`\``;
+                }
+                
+                // Default code generation
+                if (request.includes('sort') || request.includes('quick sort')) {
+                    return `Here's a ${language} implementation of quicksort:\n\`\`\`${language}\n${this.getQuickSortCode(language)}\n\`\`\``;
+                }
+                
+                if (request.includes('fibonacci')) {
+                    return `Here's a ${language} implementation of Fibonacci sequence:\n\`\`\`${language}\n${this.getFibonacciCode(language)}\n\`\`\``;
+                }
+                
+                return `I'll generate some ${language} code for you. Please provide more specific requirements. For example:\n"Write a ${language} function that calculates the factorial of a number."`;
+            }
+            
+            getQuickSortCode(lang) {
+                const codes = {
+                    python: `def quicksort(arr):\n    if len(arr) <= 1:\n        return arr\n    pivot = arr[len(arr) // 2]\n    left = [x for x in arr if x < pivot]\n    middle = [x for x in arr if x == pivot]\n    right = [x for x in arr if x > pivot]\n    return quicksort(left) + middle + quicksort(right)`,
+                    javascript: `function quickSort(arr) {\n    if (arr.length <= 1) return arr;\n\n    const pivot = arr[Math.floor(arr.length / 2)];\n    const left = [];\n    const right = [];\n    const equal = [];\n\n    for (let element of arr) {\n        if (element < pivot) left.push(element);\n        else if (element > pivot) right.push(element);\n        else equal.push(element);\n    }\n\n    return [...quickSort(left), ...equal, ...quickSort(right)];\n}`,
+                    java: `public class QuickSort {\n    public static void quickSort(int[] arr, int low, int high) {\n        if (low < high) {\n            int pi = partition(arr, low, high);\n            quickSort(arr, low, pi - 1);\n            quickSort(arr, pi + 1, high);\n        }\n    }\n\n    private static int partition(int[] arr, int low, int high) {\n        int pivot = arr[high];\n        int i = low - 1;\n        for (int j = low; j < high; j++) {\n            if (arr[j] < pivot) {\n                i++;\n                int temp = arr[i];\n                arr[i] = arr[j];\n                arr[j] = temp;\n            }\n        }\n        int temp = arr[i + 1];\n        arr[i + 1] = arr[high];\n        arr[high] = temp;\n        return i + 1;\n    }\n}`
+                };
+                return codes[lang] || codes.python;
+            }
+            
+            getFibonacciCode(lang) {
+                const codes = {
+                    python: `def fibonacci(n):\n    if n <= 1:\n        return n\n    else:\n        return fibonacci(n-1) + fibonacci(n-2)`,
+                    javascript: `function fibonacci(n) {\n    if (n <= 1) return n;\n    return fibonacci(n - 1) + fibonacci(n - 2);\n}`,
+                    java: `public class Fibonacci {\n    public static int fibonacci(int n) {\n        if (n <= 1) return n;\n        return fibonacci(n-1) + fibonacci(n-2);\n    }\n}`
+                };
+                return codes[lang] || codes.python;
+            }
+            
+            // Explanation skill
+            explainConcept(request) {
+                if (request.includes('event loop')) {
+                    return `The JavaScript Event Loop is the mechanism that allows Node.js/JavaScript to perform non-blocking I/O operations. Key points:\n\n1. **Call Stack**: Executes functions in a last-in, first-out order\n2. **Callback Queue**: Holds async callbacks waiting to be executed\n3. **Event Loop**: Continuously checks if call stack is empty, then moves callbacks from queue to stack\n\nExample flow:\n\`\`\`javascript
+console.log('Start');
+setTimeout(() => console.log('Timeout'), 0);
+Promise.resolve().then(() => console.log('Promise'));
+console.log('End'));
+\`\`\`
+Output order: Start, End, Promise, Timeout`;
+                }
+                
+                if (request.includes('closure')) {
+                    return `A closure is a function that remembers its lexical scope even when executed outside that scope. Example:\n\`\`\`javascript
+function outer() {
+    const secret = '123';
+    return function inner() {
+        console.log(secret);
+    };
+}
+const innerFunc = outer();
+innerFunc(); // Logs '123' even though secret isn't in scope
+\`\`\``;
+                }
+                
+                return `I can explain programming concepts, algorithms, or system designs. Could you please specify what you'd like me to explain?`;
+            }
+            
+            // Knowledge training skill
+            addKnowledge(details) {
+                // Extract topic and details from training input
+                const trainMatch = details.match(/train me about:?\s*(.*)/i) || details.match(/teach me about:?\s*(.*)/i);
+                const topic = trainMatch ? trainMatch[1] : details;
+                
+                // In a real implementation, this would save to a database
+                this.memory.knowledge.facts[topic] = details;
+                
+                return `I've added information about "${topic}" to my knowledge base. I'll remember this for future conversations.`;
+            }
+            
+            // Memory recall skill
+            recallInformation(query) {
+                // Check memory for relevant information
+                const results = this.searchMemory(query);
+                
+                if (results) {
+                    return `Based on our previous conversation, here's what I know:\n\n${results}`;
+                }
+                
+                return `I'm not sure I have information about that. You can teach me by saying "Train me about [subject]" or ask me more specific questions.`;
+            }
+            
+            searchMemory(query, type = null) {
+                query = query.toLowerCase();
+                const knowledge = type ? this.memory.knowledge[type] : Object.values(this.memory.knowledge).flatMap(obj => Object.values(obj));
+                
+                for (const [topic, info] of Object.entries(knowledge)) {
+                    if (topic.toLowerCase().includes(query)) {
+                        return info;
+                    }
+                }
+                return null;
+            }
+            
+            updateContext(input, response) {
+                this.memory.context = [
+                    ...this.memory.context.slice(-4), // Keep last 4 items
+                    { input, response }
+                ];
+            }
+            
+            // ========== MEMORY MANAGEMENT ==========
+            clearMemory() {
+                this.memory = {
+                    conversation: [],
+                    knowledge: {
+                        facts: {},
+                        code: {},
+                        processes: {}
+                    },
+                    context: []
+                };
+            }
+            
+            getMemoryState() {
+                return JSON.parse(JSON.stringify(this.memory));
+            }
+        }
+
+        // ========== UI CONTROLLER ==========
+        document.addEventListener('DOMContentLoaded', () => {
+            const ai = new WhiteboxAI();
+            
+            // DOM Elements
+            const chatForm = document.getElementById('chatForm');
+            const userInput = document.getElementById('userInput');
+            const chatContainer = document.querySelector('.chat-container');
+            const memoryBtn = document.getElementById('memoryBtn');
+            const trainingBtn = document.getElementById('trainingBtn');
+            const memoryPanel = document.getElementById('memoryPanel');
+            const trainingPanel = document.getElementById('trainingPanel');
+            const clearMemoryBtn = document.getElementById('clearMemoryBtn');
+            const memoryContent = document.getElementById('memoryContent');
+            const trainBtn = document.getElementById('trainBtn');
+            const themeToggle = document.getElementById('themeToggle');
+            const lightIcon = document.getElementById('lightIcon');
+            const darkIcon = document.getElementById('darkIcon');
+            const html = document.documentElement;
+            
+            // Initialize UI state
+            let activePanel = null;
+            
+            // Initialize theme
+            const savedTheme = localStorage.getItem('theme') || 
+                              (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+            html.classList.add(savedTheme);
+            updateThemeIcons(savedTheme);
+            
+            function updateThemeIcons(theme) {
+                if (theme === 'dark') {
+                    lightIcon.classList.add('hidden');
+                    darkIcon.classList.remove('hidden');
+                } else {
+                    lightIcon.classList.remove('hidden');
+                    darkIcon.classList.add('hidden');
+                }
+            }
+            
+            // Theme toggle
+            themeToggle.addEventListener('click', () => {
+                if (html.classList.contains('dark')) {
+                    html.classList.remove('dark');
+                    localStorage.setItem('theme', 'light');
+                    updateThemeIcons('light');
+                } else {
+                    html.classList.add('dark');
+                    localStorage.setItem('theme', 'dark');
+                    updateThemeIcons('dark');
+                }
+            });
+            
+            // Panel toggles
+            memoryBtn.addEventListener('click', () => {
+                if (activePanel === 'memory') {
+                    memoryPanel.classList.add('hidden');
+                    activePanel = null;
+                    memoryBtn.classList.remove('bg-green-700');
+                    memoryBtn.classList.add('bg-green-600');
+                } else {
+                    // Update memory panel content
+                    const memoryState = ai.getMemoryState();
+                    memoryContent.innerHTML = `
+                        <h3 class="font-medium text-gray-800 dark:text-gray-200 mb-2">Conversation History</h3>
+                        <div class="max-h-32 overflow-y-auto mb-4">
+                            ${memoryState.conversation.map(msg => 
+                                `<p class="${msg.role === 'user' ? 'text-blue-600 dark:text-blue-400' : 'text-gray-800 dark:text-gray-300'} text-xs mb-1">
+                                    <strong>${msg.role}:</strong> ${truncate(msg.content, 50)}
+                                </p>`
+                            ).join('')}
+                        </div>
+                        <h3 class="font-medium text-gray-800 dark:text-gray-200 mb-2">Knowledge Base</h3>
+                        <div class="grid grid-cols-2 gap-2 text-xs">
+                            <div class="bg-gray-100 dark:bg-gray-700 p-2 rounded">
+                                <strong class="block">Facts:</strong> ${Object.keys(memoryState.knowledge.facts).length}
+                            </div>
+                            <div class="bg-gray-100 dark:bg-gray-700 p-2 rounded">
+                                <strong class="block">Code Examples:</strong> ${Object.keys(memoryState.knowledge.code).length}
+                            </div>
+                        </div>
+                    `;
+                    
+                    trainingPanel.classList.add('hidden');
+                    memoryPanel.classList.remove('hidden');
+                    activePanel = 'memory';
+                    memoryBtn.classList.remove('bg-green-600');
+                    memoryBtn.classList.add('bg-green-700');
+                    trainingBtn.classList.remove('bg-purple-700');
+                    trainingBtn.classList.add('bg-purple-600');
+                }
+            });
+            
+            trainingBtn.addEventListener('click', () => {
+                if (activePanel === 'training') {
+                    trainingPanel.classList.add('hidden');
+                    activePanel = null;
+                    trainingBtn.classList.remove('bg-purple-700');
+                    trainingBtn.classList.add('bg-purple-600');
+                } else {
+                    memoryPanel.classList.add('hidden');
+                    trainingPanel.classList.remove('hidden');
+                    activePanel = 'training';
+                    trainingBtn.classList.remove('bg-purple-600');
+                    trainingBtn.classList.add('bg-purple-700');
+                    memoryBtn.classList.remove('bg-green-700');
+                    memoryBtn.classList.add('bg-green-600');
+                }
+            });
+            
+            // Clear memory
+            clearMemoryBtn.addEventListener('click', () => {
+                ai.clearMemory();
+                memoryContent.innerHTML = '<p class="text-green-600 dark:text-green-400">Memory cleared successfully.</p>';
+                setTimeout(() => {
+                    memoryPanel.classList.add('hidden');
+                    activePanel = null;
+                    memoryBtn.classList.remove('bg-green-700');
+                    memoryBtn.classList.add('bg-green-600');
+                }, 1500);
+            });
+            
+            // Training form
+            trainBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                const type = document.getElementById('knowledgeType').value;
+                const topic = document.getElementById('trainTopic').value.trim();
+                const details = document.getElementById('trainDetails').value.trim();
+                
+                if (!topic || !details) {
+                    alert('Please provide both topic and details');
+                    return;
+                }
+                
+                // Train the AI
+                const response = ai.process(`Train me about ${topic}: ${details}`);
+                
+                // Show response
+                addMessageToChat(`Training about: ${topic}`, 'user');
+                addMessageToChat(response, 'ai');
+                
+                // Clear form
+                document.getElementById('trainTopic').value = '';
+                document.getElementById('trainDetails').value = '';
+                trainingPanel.classList.add('hidden');
+                activePanel = null;
+                trainingBtn.classList.remove('bg-purple-700');
+                trainingBtn.classList.add('bg-purple-600');
+            });
+            
+            // Chat form
+            chatForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const message = userInput.value.trim();
+                if (!message) return;
+                
+                addMessageToChat(message, 'user');
+                userInput.value = '';
+                
+                // Show typing indicator
+                const typingIndicator = document.createElement('div');
+                typingIndicator.className = 'flex justify-start typing-indicator';
+                typingIndicator.innerHTML = `
+                    <div class="max-w-3xl rounded-lg px-4 py-3 bg-gray-200 dark:bg-gray-700">
+                        <div class="flex space-x-1">
+                            <span>•</span>
+                            <span>•</span>
+                            <span>•</span>
+                        </div>
+                    </div>
+                `;
+                chatContainer.appendChild(typingIndicator);
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+                
+                // Get AI response
+                setTimeout(() => {
+                    chatContainer.removeChild(typingIndicator);
+                    const response = ai.process(message);
+                    addMessageToChat(response, 'ai');
+                }, 1000 + Math.random() * 1000); // Random delay for realism
+            });
+            
+            // Quick prompt buttons
+            document.querySelectorAll('[data-prompt]').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    userInput.value = button.dataset.prompt;
+                    userInput.focus();
+                });
+            });
+            
+            // Helper functions
+            function addMessageToChat(message, sender) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `flex ${sender === 'user' ? 'justify-end' : 'justify-start'} mb-3`;
+                
+                let content;
+                if (sender === 'user') {
+                    content = `
+                        <div class="max-w-3xl rounded-lg px-4 py-3 bg-blue-600 text-white">
+                            ${escapeHtml(message)}
+                        </div>
+                    `;
+                } else {
+                    const withCodeHighlight = highlightCodeBlocks(message);
+                    content = `
+                        <div class="max-w-3xl rounded-lg px-4 py-3 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-100 markdown-content">
+                            ${withCodeHighlight}
+                        </div>
+                    `;
+                }
+                
+                messageDiv.innerHTML = content;
+                chatContainer.appendChild(messageDiv);
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+                
+                // Highlight any code blocks
+                document.querySelectorAll('pre code').forEach((block) => {
+                    hljs.highlightElement(block);
+                });
+            }
+            
+            function highlightCodeBlocks(text) {
+                return text.replace(/
